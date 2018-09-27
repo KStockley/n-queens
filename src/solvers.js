@@ -23,7 +23,7 @@ window.findNRooksSolution = function(n) {
   // make an array to store valid solutions
   var solutions;
 
-  var recursiveFunc = (row = 0, col = 0) => {
+  var checkForwardConfigurations = (row = 0, col = 0) => {
     // iterate through each row
     for (let i = row; i < n; i++) {
       // iterate through each column index in a row
@@ -38,7 +38,7 @@ window.findNRooksSolution = function(n) {
           // increment number of valid pieces
           nonConflictingPieces++;
           // recurse over possible permutations with the current configuration of the board
-          return recursiveFunc(i, j + 1);
+          return checkForwardConfigurations(i, j + 1);
         }
       }
     }
@@ -49,8 +49,8 @@ window.findNRooksSolution = function(n) {
       return board.rows();
     }      
   };
-  return recursiveFunc();
-};
+  return checkForwardConfigurations();
+}; // O(n^2) time complexity
   
 
 // return the number of nxn chessboards that exist, with n rooks placed such that none of them can attack each other
@@ -63,7 +63,7 @@ window.countNRooksSolutions = function(n) {
   // make an array to store valid solutions
   var solutions = 0;
 
-  var recursiveFunc = (row = 0, col = 0) => {
+  var checkForwardConfigurations = (row = 0, col = 0) => {
     // iterate through each row
     for (let i = row; i < n; i++) {
       // iterate through each column index in a row
@@ -78,7 +78,7 @@ window.countNRooksSolutions = function(n) {
           // increment number of valid pieces
           nonConflictingPieces++;
           // recurse over possible permutations with the current configuration of the board
-          recursiveFunc(i, j + 1);
+          checkForwardConfigurations(i, j + 1);
           // undo most recent piece placement once all results of that configuration are checked
           board.togglePiece(i, j);
           // decrement number of valid pieces
@@ -91,9 +91,9 @@ window.countNRooksSolutions = function(n) {
     if (nonConflictingPieces === n) { // if n valid pieces are placed
       solutions++; // increment number of solutions
     }      
-  };
+  }; // O(n^2) time complexity
 
-  recursiveFunc(); // invoke recursive helper function
+  checkForwardConfigurations(); // invoke recursive helper function
 
   console.log('Number of solutions for ' + n + ' rooks:', solutions);
   return solutions;
@@ -109,7 +109,7 @@ window.findNQueensSolution = function(n) {
   // make counter of non-conflicting pieces
   var nonConflictingPieces = 0;
 
-  var recursiveFunc = (row = 0, col = 0) => {
+  var checkForwardConfigurations = (row = 0, col = 0) => {
     // iterate through each row
     for (let i = row; i < n; i++) {
       // iterate through each column index in a row
@@ -123,7 +123,7 @@ window.findNQueensSolution = function(n) {
         // otherwise recursive call to a chessboard that starts on 
         } else {
           nonConflictingPieces++;
-          if (recursiveFunc(i, j + 1)) {
+          if (checkForwardConfigurations(i, j + 1)) {
             return board.rows().slice(0);
           }
           // undo most recent piece placement once all results of that configuration are checked
@@ -140,8 +140,8 @@ window.findNQueensSolution = function(n) {
       return board.rows();
     }      
   };
-  return recursiveFunc();
-};
+  return checkForwardConfigurations();
+}; // O(n^2) time complexity
 
 // return the number of nxn chessboards that exist, with n queens placed such that none of them can attack each other
 window.countNQueensSolutions = function(n) {
@@ -152,7 +152,7 @@ window.countNQueensSolutions = function(n) {
   // make an array to store valid solutions
   var solutions = 0;
 
-  var recursiveFunc = (row = 0, col = 0) => {
+  var checkForwardConfigurations = (row = 0, col = 0) => {
     // iterate through each row
     for (let i = row; i < n; i++) {
       // iterate through each column index in a row
@@ -167,7 +167,7 @@ window.countNQueensSolutions = function(n) {
           // increment number of valid pieces
           nonConflictingPieces++;
           // recurse over possible permutations with the current configuration of the board
-          recursiveFunc(i, j + 1);
+          checkForwardConfigurations(i, j + 1);
           // undo most recent piece placement once all results of that configuration are checked
           board.togglePiece(i, j);
           // decrement number of valid pieces
@@ -182,8 +182,8 @@ window.countNQueensSolutions = function(n) {
     }      
   };
 
-  recursiveFunc(); // invoke recursive helper function
+  checkForwardConfigurations(); // invoke recursive helper function
 
   console.log('Number of solutions for ' + n + ' queens:', solutions);
   return solutions;
-};
+}; // O(n^2) time complexity
