@@ -19,36 +19,7 @@ window.findNRooksSolution = function(n) {
   // create a board that has n rows and columns
   var board = new Board({n: n});
 
-  var checkForwardConfigurations = (row = 0, col = 0, valid = 0) => { // generate all permutations that follow the current board state
-    // store the current number of valid pieces
-    var validPieces = valid;
-    // iterate through each row without repeating previous pieces
-    for (let i = row; i < n; i++) {
-      // iterate through each column index in a row without repeating previous pieces
-      for (let j = i === row ? col : 0; j < n; j++) {
-        // place a piece on the column index of the row
-        board.togglePiece(i, j);
-        // if there is a conflicting piece
-        if (board.hasAnyRooksConflicts()) {
-          // remove this piece
-          board.togglePiece(i, j);
-        } else {
-          // increment number of valid pieces
-          validPieces++;
-          // recurse over all permutations following from this board configuration
-          return checkForwardConfigurations(i, j + 1, validPieces);
-        }
-      }
-    }
-    
-    // if the number of valid pieces is equal to n
-    if (validPieces === n) {
-      // we have a solution configuration
-      console.log('Single solution for ' + n + ' rooks:', JSON.stringify(board.rows()));
-      return board.rows(); // return the matrix of the solution
-    }      
-  };
-  return checkForwardConfigurations();
+  return checkForwardConfigurations.call(board, 'rook');
 }; // O(n^2) time complexity
   
 
@@ -101,24 +72,18 @@ window.countNRooksSolutions = function(n) {
         // Otherwise there is no conflict
         // place a piece on the column index of the row
         board.togglePiece(i, j);
-        // if there is a conflicting piece
-        if (board.hasAnyRooksConflicts()) {
-          // remove this piece
-          board.togglePiece(i, j);
-        } else {
-          // increment number of valid pieces
-          validPieces++;
-          // push current coordinates into the list of blocks
-          blocked.push([i, j]);
-          // recurse over possible permutations following the current configuration of the board
-          checkForwardConfigurations(i, j + 1, validPieces, blocked);
-          // undo most recent piece placement once all permutations following that configuration are checked
-          board.togglePiece(i, j);
-          // delete removed piece from blocked
-          blocked.pop();
-          // decrement number of valid pieces
-          validPieces--;
-        }
+        // increment the number of valid pieces
+        validPieces++;
+        // push current coordinates into the list of blocks
+        blocked.push([i, j]);
+        // recurse over possible permutations following the current configuration of the board
+        checkForwardConfigurations(i, j + 1, validPieces, blocked);
+        // undo most recent piece placement once all permutations following that configuration are checked
+        board.togglePiece(i, j);
+        // delete removed piece from blocked
+        blocked.pop();
+        // decrement number of valid pieces
+        validPieces--;
       }
     }
     
@@ -142,42 +107,7 @@ window.findNQueensSolution = function(n) {
   // create a board that has n rows and columns
   var board = new Board({n: n});
 
-  var checkForwardConfigurations = (row = 0, col = 0, valid = 0) => {
-    // store the current number of valid pieces
-    var validPieces = valid;
-    // iterate through each row without repeating previous pieces
-    for (let i = row; i < n; i++) {
-      // iterate through each column index in a row without repeating previous pieces
-      for (let j = i === row ? col : 0; j < n; j++) {
-        // place a piece on the column index of the row
-        board.togglePiece(i, j);
-        // if there is a conflicting piece
-        if (board.hasAnyQueensConflicts()) {
-          // remove the piece
-          board.togglePiece(i, j);
-        // otherwise recursive call to a chessboard that starts on 
-        } else {
-          // increment number of valid pieces
-          validPieces++;
-          // if a valid solution results from any permutation following this board state
-          if (checkForwardConfigurations(i, j + 1, validPieces)) {
-            return board.rows().slice(0); // return the solution
-          } // otherwise
-          // remove the most recent piece once all permutations following that configuration are checked with no valid solution
-          board.togglePiece(i, j);
-          // decrement number of valid pieces
-          validPieces--;
-        }
-      }
-    }
-    
-    // if the number of valid pieces is equal to n
-    if (validPieces === n) {
-      console.log('Single solution for ' + n + ' queens:', JSON.stringify(board.rows()));
-      return board.rows();
-    }      
-  };
-  return checkForwardConfigurations();
+  return checkForwardConfigurations.call(board, 'queen');
 }; // O(n^2) time complexity
 
 // return the number of nxn chessboards that exist, with n queens placed such that none of them can attack each other
@@ -237,24 +167,18 @@ window.countNQueensSolutions = function(n) {
         // Otherwise there is no conflict
         // place a piece on the column index of the row
         board.togglePiece(i, j);
-        // if there is a conflicting piece
-        if (board.hasAnyQueensConflicts()) {
-          // remove the piece
-          board.togglePiece(i, j);
-        } else {
-          // increment number of valid pieces
-          validPieces++;
-          // push current coordinates into the list of blocks
-          blocked.push([i, j]);
-          // recurse over possible permutations following the current configuration of the board
-          checkForwardConfigurations(i, j + 1, validPieces, blocked);
-          // undo most recent piece placement once all permutations following that configuration are checked
-          board.togglePiece(i, j);
-          // decrement number of valid pieces
-          validPieces--;
-          // delete the removed piece from blocked
-          blocked.pop();
-        }
+        // increment the number of valid pieces
+        validPieces++;
+        // push current coordinates into the list of blocks
+        blocked.push([i, j]);
+        // recurse over possible permutations following the current configuration of the board
+        checkForwardConfigurations(i, j + 1, validPieces, blocked);
+        // undo most recent piece placement once all permutations following that configuration are checked
+        board.togglePiece(i, j);
+        // decrement number of valid pieces
+        validPieces--;
+        // delete the removed piece from blocked
+        blocked.pop();
       }
     }
     
@@ -269,3 +193,52 @@ window.countNQueensSolutions = function(n) {
   console.log('Number of solutions for ' + n + ' queens:', solutions);
   return solutions;
 }; // O(n^2) time complexity
+
+var checkForwardConfigurations = function (piece, row = 0, col = 0, valid = 0) { // generate all permutations that follow the current board state
+  var n = this.get('n');
+  var conflict;
+  // create storage for output matrix
+  var output;
+  // store the current number of valid pieces
+  var validPieces = valid;
+  // iterate through each row without repeating previous pieces
+  for (let i = row; i < n; i++) {
+    // iterate through each column index in a row without repeating previous pieces
+    for (let j = i === row ? col : 0; j < n; j++) {
+      // place a piece on the column index of the row
+      this.togglePiece(i, j);
+      // if there is a conflicting piece
+      if (piece === 'queen') {
+        conflict = this.hasAnyQueensConflicts();
+      } else if (piece === 'rook') {
+        conflict = this.hasAnyRooksConflicts();
+      }
+      if (conflict) {
+        // remove this piece
+        this.togglePiece(i, j);
+      } else {
+        // increment number of valid pieces
+        validPieces++;
+        // recurse over all permutations following from this board configuration
+        output = checkForwardConfigurations.call(this, piece, i, j + 1, validPieces);
+        // if a valid solution is found return it
+        if (output) {
+          return output;
+        } // otherwise there is no solution permutation coming from this configuration
+        // remove the most recent piece
+        this.togglePiece(i, j);
+        // decrement the valid pieces
+        validPieces--;
+      }
+    }
+  }
+  
+  // if the number of valid pieces is equal to n
+  if (validPieces === n) {
+    // we have a solution configuration
+    output = this.rows();
+    // display the solution and return it
+    console.log('Single solution for ' + n + ' rooks:' + output);
+    return output; // return the matrix of the solution
+  }      
+};
